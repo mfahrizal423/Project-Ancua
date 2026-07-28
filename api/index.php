@@ -32,5 +32,11 @@ if (!getenv('LOG_CHANNEL')) {
     $_SERVER['LOG_CHANNEL'] = 'stderr';
 }
 
+if (!getenv('DB_CONNECTION')) {
+    putenv('DB_CONNECTION=pgsql');
+    $_ENV['DB_CONNECTION'] = 'pgsql';
+    $_SERVER['DB_CONNECTION'] = 'pgsql';
+}
+
 // Forward requests to Laravel's public/index.php
 require __DIR__ . '/../public/index.php';
