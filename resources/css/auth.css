@@ -1,0 +1,12 @@
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Strict adherence to 0px border radius */
+* { border-radius: 0 !important; }
+
+input:focus {
+    outline: none;
+    border-color: #a80006 !important;
+    box-shadow: none !important;
+}
