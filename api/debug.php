@@ -1,39 +1,58 @@
 <?php
-// Diagnostic endpoint - REMOVE AFTER DEBUGGING
+// Simple PHP diagnostic - no Laravel
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-echo '<pre>';
-echo 'PHP Version: ' . PHP_VERSION . "\n";
-echo 'PHP_VERSION_ID: ' . PHP_VERSION_ID . "\n\n";
+header('Content-Type: text/plain');
 
-echo '--- Extensions ---' . "\n";
-echo 'pdo_pgsql: ' . (extension_loaded('pdo_pgsql') ? 'YES' : 'NO') . "\n";
-echo 'pdo_mysql: ' . (extension_loaded('pdo_mysql') ? 'YES' : 'NO') . "\n";
-echo 'openssl:   ' . (extension_loaded('openssl') ? 'YES' : 'NO') . "\n\n";
+echo "=== PHP Info ===\n";
+echo "PHP Version: " . PHP_VERSION . "\n";
+echo "PHP_VERSION_ID: " . PHP_VERSION_ID . "\n\n";
 
-echo '--- Directories ---' . "\n";
-echo '/tmp writable: ' . (is_writable('/tmp') ? 'YES' : 'NO') . "\n";
-
-$dirs = ['/tmp/storage', '/tmp/storage/framework', '/tmp/storage/framework/views'];
-foreach ($dirs as $d) {
-    @mkdir($d, 0755, true);
-    echo $d . ': ' . (is_dir($d) ? 'EXISTS' : 'MISSING') . "\n";
+echo "=== Extensions ===\n";
+$exts = ['pdo', 'pdo_pgsql', 'pdo_mysql', 'openssl', 'mbstring', 'curl', 'fileinfo', 'tokenizer', 'xml'];
+foreach ($exts as $ext) {
+    echo $ext . ': ' . (extension_loaded($ext) ? 'YES' : 'NO') . "\n";
 }
 
-echo "\n--- ENV ---\n";
-echo 'APP_KEY set: ' . (getenv('APP_KEY') ? 'YES' : 'NO') . "\n";
-echo 'APP_ENV: ' . (getenv('APP_ENV') ?: 'NOT SET') . "\n";
-echo 'DB_CONNECTION: ' . (getenv('DB_CONNECTION') ?: 'NOT SET') . "\n";
-echo 'DB_HOST: ' . (getenv('DB_HOST') ?: 'NOT SET') . "\n";
-echo 'SESSION_DRIVER: ' . (getenv('SESSION_DRIVER') ?: 'NOT SET') . "\n";
+echo "\n=== /tmp Writable ===\n";
+echo '/tmp: ' . (is_writable('/tmp') ? 'YES' : 'NO') . "\n";
+$testDir = '/tmp/storage/framework/views';
+@mkdir($testDir, 0755, true);
+echo $testDir . ': ' . (is_dir($testDir) ? 'CREATED' : 'FAILED') . "\n";
 
-echo "\n--- Laravel Boot Test ---\n";
+echo "\n=== ENV Variables ===\n";
+$keys = ['APP_KEY', 'APP_ENV', 'APP_DEBUG', 'DB_CONNECTION', 'DB_HOST', 'DB_PORT', 'DB_DATABASE', 'DB_USERNAME', 'SESSION_DRIVER', 'CACHE_STORE'];
+foreach ($keys as $k) {
+    $val = getenv($k);
+    if ($k === 'APP_KEY' && $val) {
+        $val = substr($val, 0, 20) . '...';
+    }
+    if ($k === 'DB_PASSWORD' && $val) {
+        $val = '***';
+    }
+    echo $k . ': ' . ($val ?: 'NOT SET') . "\n";
+}
+
+echo "\n=== Files Check ===\n";
+$files = [
+    __DIR__ . '/../public/index.php',
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../bootstrap/app.php',
+];
+foreach ($files as $f) {
+    echo basename($f) . ': ' . (file_exists($f) ? 'EXISTS' : 'MISSING') . "\n";
+}
+
+echo "\n=== Laravel Boot ===\n";
 try {
+    ob_start();
     require __DIR__ . '/../public/index.php';
+    $output = ob_get_clean();
+    echo "Boot OK. Output length: " . strlen($output) . "\n";
 } catch (\Throwable $e) {
-    echo 'ERROR: ' . $e->getMessage() . "\n";
-    echo 'File: ' . $e->getFile() . ':' . $e->getLine() . "\n";
-    echo 'Trace: ' . $e->getTraceAsString() . "\n";
+    ob_end_clean();
+    echo "BOOT ERROR: " . $e->getMessage() . "\n";
+    echo "File: " . $e->getFile() . ":" . $e->getLine() . "\n";
+    echo "Type: " . get_class($e) . "\n";
 }
-echo '</pre>';
