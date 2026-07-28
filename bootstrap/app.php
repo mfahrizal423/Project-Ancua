@@ -4,7 +4,10 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
-$app = Application::configure(basePath: dirname(__DIR__))
+// Configure custom storage path if running on serverless (Vercel)
+$storagePath = $_ENV['STORAGE_PATH'] ?? $_SERVER['STORAGE_PATH'] ?? getenv('STORAGE_PATH') ?: null;
+
+$builder = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
@@ -21,11 +24,12 @@ $app = Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
-    })->create();
+    });
 
-if (isset($_ENV['STORAGE_PATH']) || isset($_SERVER['STORAGE_PATH'])) {
-    $storagePath = $_ENV['STORAGE_PATH'] ?? $_SERVER['STORAGE_PATH'];
-    $app->useStoragePath($storagePath);
+if ($storagePath) {
+    $builder->useStoragePath($storagePath);
 }
+
+$app = $builder->create();
 
 return $app;
