@@ -12,12 +12,24 @@ if (is_writable($tmpPath)) {
     putenv('VIEW_COMPILED_PATH=' . $tmpPath . '/views');
     $_ENV['VIEW_COMPILED_PATH'] = $tmpPath . '/views';
     $_SERVER['VIEW_COMPILED_PATH'] = $tmpPath . '/views';
+}
 
-    if (!getenv('LOG_CHANNEL')) {
-        putenv('LOG_CHANNEL=stderr');
-        $_ENV['LOG_CHANNEL'] = 'stderr';
-        $_SERVER['LOG_CHANNEL'] = 'stderr';
-    }
+if (!getenv('APP_KEY')) {
+    putenv('APP_KEY=base64:MTgGJ6f24yva1Sg4hS5YBcWLDIyTQ0XbjPjVplPR12E=');
+    $_ENV['APP_KEY'] = 'base64:MTgGJ6f24yva1Sg4hS5YBcWLDIyTQ0XbjPjVplPR12E=';
+    $_SERVER['APP_KEY'] = 'base64:MTgGJ6f24yva1Sg4hS5YBcWLDIyTQ0XbjPjVplPR12E=';
+}
+
+if (!getenv('APP_DEBUG')) {
+    putenv('APP_DEBUG=true');
+    $_ENV['APP_DEBUG'] = 'true';
+    $_SERVER['APP_DEBUG'] = 'true';
+}
+
+if (!getenv('LOG_CHANNEL')) {
+    putenv('LOG_CHANNEL=stderr');
+    $_ENV['LOG_CHANNEL'] = 'stderr';
+    $_SERVER['LOG_CHANNEL'] = 'stderr';
 }
 
 // Forward requests to Laravel's public/index.php
