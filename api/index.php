@@ -5,6 +5,60 @@
  * Sets up /tmp directory structure required by Laravel before booting.
  */
 
+// ─── DIAGNOSTIC MODE ─────────────────────────────────────────────────────────
+// Access /?diag=1 to see PHP environment info without booting Laravel
+if (isset($_GET['diag'])) {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+    header('Content-Type: text/plain; charset=utf-8');
+
+    echo "=== PHP ===\n";
+    echo "Version: " . PHP_VERSION . " (ID: " . PHP_VERSION_ID . ")\n\n";
+
+    echo "=== Extensions ===\n";
+    foreach (['pdo', 'pdo_pgsql', 'pdo_mysql', 'openssl', 'mbstring', 'curl', 'fileinfo', 'tokenizer', 'xml', 'json'] as $ext) {
+        echo str_pad($ext, 12) . ': ' . (extension_loaded($ext) ? 'YES' : 'NO') . "\n";
+    }
+
+    echo "\n=== /tmp ===\n";
+    echo '/tmp writable: ' . (is_writable('/tmp') ? 'YES' : 'NO') . "\n";
+    $testDir = '/tmp/storage/framework/views';
+    @mkdir($testDir, 0755, true);
+    echo $testDir . ': ' . (is_dir($testDir) ? 'OK' : 'FAILED') . "\n";
+
+    echo "\n=== ENV ===\n";
+    foreach (['APP_KEY', 'APP_ENV', 'APP_DEBUG', 'DB_CONNECTION', 'DB_HOST', 'DB_PORT', 'DB_DATABASE', 'DB_USERNAME', 'SESSION_DRIVER', 'CACHE_STORE', 'STORAGE_PATH'] as $k) {
+        $v = getenv($k) ?: $_ENV[$k] ?? $_SERVER[$k] ?? null;
+        if ($v && in_array($k, ['APP_KEY'])) {
+            $v = substr($v, 0, 20) . '...';
+        }
+        echo str_pad($k, 16) . ': ' . ($v ?: 'NOT SET') . "\n";
+    }
+
+    echo "\n=== Files ===\n";
+    foreach ([
+        __DIR__ . '/../public/index.php',
+        __DIR__ . '/../vendor/autoload.php',
+        __DIR__ . '/../bootstrap/app.php',
+    ] as $f) {
+        echo str_pad(basename($f), 16) . ': ' . (file_exists($f) ? 'EXISTS' : 'MISSING') . "\n";
+    }
+
+    echo "\n=== Laravel Boot ===\n";
+    try {
+        ob_start();
+        require __DIR__ . '/../public/index.php';
+        $len = strlen(ob_get_clean());
+        echo "OK - output: {$len} bytes\n";
+    } catch (\Throwable $e) {
+        ob_end_clean();
+        echo get_class($e) . ": " . $e->getMessage() . "\n";
+        echo "at " . $e->getFile() . ":" . $e->getLine() . "\n";
+    }
+    exit;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 $tmpBase = '/tmp/storage';
 
 // All directories Laravel needs inside storage/
